@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FUENApi.Models;
+using FUENApi.Models.DTO;
 
 namespace FUENApi.Controllers
 {
@@ -29,7 +30,7 @@ namespace FUENApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Products>>> GetProducts(string? keyword)
+        public async Task<ActionResult<ProductsDTO>> GetProducts(string? keyword, int page = 1, int pageSize = 3)
         {
           if (_context.Products == null)
           {
@@ -44,8 +45,26 @@ namespace FUENApi.Controllers
                 products = products.Where(p => p.Name.Contains(keyword));
             }
 
+            //分頁
+            int totalCount = products.Count(); //總共幾筆 10
+            //int pageSize = 3;  //每頁3筆資料
+            int totalPages =(int) Math.Ceiling(totalCount / (double)pageSize); //計算出共幾頁 4
+            //int page = 2; //顯示第幾頁
 
-            return await products.ToListAsync();
+            products = products.Skip(pageSize * (page-1)).Take(pageSize);  
+            //page = 0 * 3  take 1,2,3
+            //page=1 * 3 take 4,5,6
+            //page=2 * 3 take 7,8,9
+
+
+            ProductsDTO productsDTO = new ProductsDTO();
+            productsDTO.Products = await products.ToListAsync();
+            productsDTO.TotalPages = totalPages;
+
+
+            return productsDTO;
+
+           // return await products.ToListAsync();
         }
 
         // GET: api/Products/5
