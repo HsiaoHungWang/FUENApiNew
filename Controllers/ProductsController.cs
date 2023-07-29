@@ -11,6 +11,7 @@ namespace FUENApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class ProductsController : ControllerBase
     {
         private readonly iSpan202301Context _context;
@@ -28,13 +29,23 @@ namespace FUENApi.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Products>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<Products>>> GetProducts(string? keyword)
         {
           if (_context.Products == null)
           {
               return NotFound();
           }
-            return await _context.Products.ToListAsync();
+
+            //讀出所有資料
+            var products = _context.Products.AsQueryable();
+
+            //產品名稱搜尋
+            if(!string.IsNullOrEmpty(keyword)) {
+                products = products.Where(p => p.Name.Contains(keyword));
+            }
+
+
+            return await products.ToListAsync();
         }
 
         // GET: api/Products/5
